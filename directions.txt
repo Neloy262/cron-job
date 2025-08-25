@@ -1,0 +1,8 @@
+Objective: Create a cli application in click python to manage cron jobs
+
+Features:
+1. Add cron jobs
+2. Update cron jobs
+3. Delete cron jobs
+
+There are 1 type of job. The job is a rest api endpoint. This is the base url: http://192.168.9.112/{job_name} where job name is fault
