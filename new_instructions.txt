@@ -1,0 +1,9 @@
+There will be 4 types of valid jobs
+1. fault
+2. pmf
+3. imf
+4. cmf
+
+the url for each job will be different. these url will be defined in the .env
+
+
