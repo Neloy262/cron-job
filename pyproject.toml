@@ -1,23 +1,24 @@
-[project]
+[tool.poetry]
 name = "cron-job"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "mahmud",email = "mahmud@nybsys.com"}
-]
+description = "A CLI application to manage cron jobs with database persistence"
+authors = ["mahmud <mahmud@nybsys.com>"]
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "click (>=8.2.1,<9.0.0)",
-    "python-crontab (>=3.3.0,<4.0.0)",
-    "croniter (>=6.0.0,<7.0.0)",
-    "sqlalchemy (>=2.0.43,<3.0.0)",
-    "python-decouple (>=3.8,<4.0)",
-    "pyodbc (>=5.2.0,<6.0.0)",
-    "pytest (>=8.4.1,<9.0.0)"
-]
+packages = [{include = "cron_job"}]
 
+[tool.poetry.dependencies]
+python = "^3.12"
+click = "^8.2.1"
+python-crontab = "^3.3.0"
+croniter = "^6.0.0"
+sqlalchemy = "^2.0.43"
+python-decouple = "^3.8"
+pyodbc = "^5.2.0"
+pytest = "^8.4.1"
+
+[tool.poetry.scripts]
+cron-manager = "cron_job.cron_manager:cli"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

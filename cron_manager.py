@@ -69,23 +69,27 @@ def add(job_name, schedule):
     # Generate a unique identifier for this job
     job_id = str(uuid.uuid4())[:8]  # Short UUID for readability
     
-    # Get the appropriate URL for this job type
+    # Get the appropriate URL for this job type (without jobId parameter)
     base_url = JOB_URLS[job_name]
     
-    # Create the command to execute with the job ID as a query parameter or path parameter
-    # We'll add the job ID as a query parameter to avoid changing the URL structure
-    if "?" in base_url:
-        command = f"curl -X GET \"{base_url}&jobId={job_id}\""
-    else:
-        command = f"curl -X GET \"{base_url}?jobId={job_id}\""
+    # Create the command to execute WITHOUT the job ID as a query parameter
+    if job_name == "pmf":
+        command = f"""curl --location {JOB_URLS["pmf"]} --header 'Content-Type: application/json' --data '{{"range": {{"range_type": "weekly"}},"ftp_directory": "{schedule}"}}'"""
+        print(command)
+
+    elif job_name == "fault":
+        command = f"curl -X GET \"{base_url}\""
     
-    comment = f"Cron job for {job_name} (ID: {job_id})"
-    
+    # Use the job_id as comment for tracking
+    comment = job_id  # Using just the job_id as comment for easier tracking
+
     # Create new job
     job = cron.new(command=command, comment=comment)
     result = job.setall(parsed_schedule)
+
     if result is not False:  # setall returns None on success, False on failure
         cron.write()
+
         # Record in database - store the original schedule string, not the parsed one
         try:
             db_job = create_cron_job(job_name, schedule, job_id)
@@ -114,10 +118,10 @@ def update(job_id, new_schedule):
     
     cron = CronTab(user=True)
     
-    # Find the job by ID
+    # Find the job by comment (which contains the job_id)
     found_job = None
     for job in cron:
-        if f"jobId={job_id}" in str(job.command):
+        if job.comment == job_id:
             found_job = job
             break
     
@@ -139,7 +143,7 @@ def update(job_id, new_schedule):
             job_type = None
             for jt in VALID_JOBS:
                 base_url = JOB_URLS[jt]
-                if base_url in command and f"jobId={job_id}" in command:
+                if base_url in command:
                     job_type = jt
                     break
             
@@ -174,10 +178,12 @@ def delete(job_id):
     """
     cron = CronTab(user=True)
     
-    # Find the job by ID
+    # Find the job by comment (which contains the job_id)
     found_job = None
     for job in cron:
-        if f"jobId={job_id}" in str(job.command):
+        print(job)
+        print(job.comment)
+        if job.comment == job_id:
             found_job = job
             break
     
@@ -196,7 +202,7 @@ def delete(job_id):
         job_type = None
         for jt in VALID_JOBS:
             base_url = JOB_URLS[jt]
-            if base_url in command and f"jobId={job_id}" in command:
+            if base_url in command:
                 job_type = jt
                 break
         
@@ -235,16 +241,9 @@ def list_jobs():
                 # Try to find if this matches a predefined schedule
                 display_schedule = REVERSE_SCHEDULE_MAPPINGS.get(schedule_str, schedule_str)
                 
-                # Extract ID from query parameter jobId=
-                if "jobId=" in command_str:
-                    start_idx = command_str.find("jobId=") + 6  # Length of "jobId="
-                    end_idx = command_str.find("\"", start_idx)
-                    if end_idx == -1:  # If no closing quote, find end of string or next space
-                        end_idx = len(command_str)
-                    job_id = command_str[start_idx:end_idx]
-                    click.echo(f"Job: {job_name} | ID: {job_id} | Schedule: {display_schedule} | Command: {job.command}")
-                else:
-                    click.echo(f"Job: {job_name} | Schedule: {display_schedule} | Command: {job.command}")
+                # Get ID from comment field
+                job_id = job.comment
+                click.echo(f"Job: {job_name} | ID: {job_id} | Schedule: {display_schedule} | Command: {job.command}")
                 found_jobs = True
                 break
     
