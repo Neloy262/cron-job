@@ -80,6 +80,9 @@ def add(job_name, schedule):
     elif job_name == "fault":
         command = f"curl -X GET \"{base_url}\""
     
+    elif job_name == "imf":
+        command = f"""curl --location '{JOB_URLS["imf"]}={schedule}'"""
+
     # Use the job_id as comment for tracking
     comment = job_id  # Using just the job_id as comment for easier tracking
 
