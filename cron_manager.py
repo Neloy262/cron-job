@@ -12,9 +12,9 @@ config = Config(RepositoryEnv(env_path))
 # Base URLs for the API endpoints
 JOB_URLS = {
     "fault": config('FAULT_URL'),
-    "pmf": config('PMF_URL'),
-    "imf": config('IMF_URL'),
-    "cmf": config('CMF_URL')
+    "performance": config('PMF_URL'),
+    "inventory": config('IMF_URL'),
+    "configuration": config('CMF_URL')
 }
 
 # Valid job names
