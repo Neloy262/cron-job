@@ -12,9 +12,9 @@ config = Config(RepositoryEnv(env_path))
 # Base URLs for the API endpoints
 JOB_URLS = {
     "fault": config('FAULT_URL'),
-    "performance": config('PMF_URL'),
-    "inventory": config('IMF_URL'),
-    "configuration": config('CMF_URL')
+    "pmf": config('PMF_URL'),
+    "imf": config('IMF_URL'),
+    "cmf": config('CMF_URL')
 }
 
 # Valid job names
@@ -28,6 +28,7 @@ SCHEDULE_MAPPINGS = {
     "daily": "0 0 * * *",       # Every day at midnight
     "hourly": "0 * * * *",      # Every hour at minute 0
     "every_5_minutes": "*/5 * * * *",  # Every 5 minutes
+    "every_1_minute": "* * * * *"
 }
 
 # Reverse mapping for checking if a cron expression is a predefined schedule
@@ -75,12 +76,14 @@ def add(job_name, schedule):
     # Create the command to execute WITHOUT the job ID as a query parameter
     if job_name == "pmf":
         command = f"""curl --location {JOB_URLS["pmf"]} --header 'Content-Type: application/json' --data '{{"range": {{"range_type": "weekly"}},"ftp_directory": "{schedule}"}}'"""
-        print(command)
+        # print(command)
 
     elif job_name == "fault":
-        command = f"curl -X GET \"{base_url}\""
+        schedule = "weekly"
+        command = f"curl -X GET \"{base_url}{schedule}\""
     
     elif job_name == "imf":
+        schedule = "weekly"
         command = f"""curl --location '{JOB_URLS["imf"]}={schedule}'"""
 
     # Use the job_id as comment for tracking
