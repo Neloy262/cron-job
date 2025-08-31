@@ -4,6 +4,7 @@ from crontab import CronTab
 from database import create_cron_job, update_cron_job, delete_cron_job
 from decouple import Config, RepositoryEnv
 import os
+import json
 
 # Load environment variables
 env_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -56,7 +57,8 @@ def cli():
 @cli.command()
 @click.argument('job_name', callback=validate_job_name)
 @click.argument('schedule')
-def add(job_name, schedule):
+@click.argument('device_serial', required=False, default=None)
+def add(job_name, schedule,device_serial=None):
     """Add a new cron job for the specified job name with the given schedule.
     
     JOB_NAME: Name of the job (fault, pmf, imf, cmf)
@@ -85,6 +87,16 @@ def add(job_name, schedule):
     elif job_name == "imf":
         schedule = "weekly"
         command = f"""curl --location '{JOB_URLS["imf"]}={schedule}'"""
+
+    elif job_name == "cmf":
+        if not device_serial:
+            click.echo("No device serial provided")
+            return
+        payload = json.dumps({
+            "device_serial_no": device_serial,
+            "export": True
+        })
+        command = f"""curl --location {JOB_URLS["cmf"]} --header 'Content-Type: application/json' --data '{payload}'"""
 
     # Use the job_id as comment for tracking
     comment = job_id  # Using just the job_id as comment for easier tracking
